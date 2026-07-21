@@ -89,8 +89,9 @@ export function hygiene(some: NodeJS.ReadWriteStream | string[] | undefined, run
 	const productJson = es.through(function (file: VinylFile) {
 		const product = JSON.parse(file.contents!.toString('utf8'));
 
-		if (product.extensionsGallery) {
-			console.error(`product.json: Contains 'extensionsGallery'`);
+		// VStudy: extensionsGallery (Open VSX) es intencional en este fork
+		if (product.extensionsGallery && product.extensionsGallery.serviceUrl !== 'https://open-vsx.org/vscode/gallery') {
+			console.error(`product.json: Contains unexpected 'extensionsGallery'`);
 			errorCount++;
 		}
 

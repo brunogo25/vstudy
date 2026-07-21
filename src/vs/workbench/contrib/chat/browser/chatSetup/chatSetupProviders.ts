@@ -49,7 +49,7 @@ import { IMarker, IMarkerService, MarkerSeverity } from '../../../../../platform
 import { ChatSetupController } from './chatSetupController.js';
 import { ChatGlobalPerfMark, markChatGlobal } from '../../common/chatPerf.js';
 import { ChatSetupAnonymous, ChatSetupStep, IChatSetupResult, maybeEnableAuthExtension, refreshTokens } from './chatSetup.js';
-import { ChatSetup } from './chatSetupRunner.js';
+import { ChatSetup, VSTUDY_SKIP_PROVIDER_SETUP } from './chatSetupRunner.js';
 import { chatViewsWelcomeRegistry } from '../viewsWelcome/chatViewsWelcome.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
@@ -682,7 +682,10 @@ export class SetupAgent extends Disposable implements IChatAgentImplementation {
 		const widget = chatWidgetService.getWidgetBySessionResource(request.sessionResource);
 		const requestModel = widget?.viewModel?.model.getRequests().at(-1);
 
-		const setupListener = Event.runAndSubscribe(this.controller.value.onDidChange, (() => {
+		// VStudy (T1.4): never touch `controller.value` — constructing the setup
+		// controller would resolve GitHub entitlements. Setup here only handles
+		// workspace trust, so there are no sign-in/install steps to report.
+		const setupListener = VSTUDY_SKIP_PROVIDER_SETUP ? Disposable.None : Event.runAndSubscribe(this.controller.value.onDidChange, (() => {
 			switch (this.controller.value.step) {
 				case ChatSetupStep.SigningIn:
 					progress({

@@ -36,6 +36,14 @@ import { IExtensionService } from '../../../../services/extensions/common/extens
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
 import { raceTimeout } from '../../../../../base/common/async.js';
 
+/**
+ * VStudy (T1.4): BYOK-only build — the chat setup runner never runs the
+ * GitHub/Copilot sign-in, sign-up or install flows. Typed as `boolean` (not the
+ * literal `true`) so the original flow below remains statically reachable and
+ * compiles under `allowUnreachableCode: false`, keeping upstream merges simple.
+ */
+export const VSTUDY_SKIP_PROVIDER_SETUP: boolean = true;
+
 const defaultChat = {
 	chatExtensionId: product.defaultChatAgent?.chatExtensionId ?? '',
 	publicCodeMatchesUrl: product.defaultChatAgent?.publicCodeMatchesUrl ?? '',
@@ -120,6 +128,19 @@ export class ChatSetup {
 			// (which would briefly show the sign-in dialog to an already-signed-in
 			// user). Bounded, so a genuinely signed-out / slow case still proceeds.
 			await this.whenChatExtensionActivated();
+		}
+
+		// VStudy (T1.4): BYOK-only build — there is no GitHub sign-in/sign-up flow to
+		// run. Workspace trust was handled above; mark setup as completed and succeed
+		// without showing any provider dialog, running the setup controller or
+		// contacting GitHub/Copilot endpoints. (Phase 2 replaces this with the
+		// "Conecta tu IA" onboarding.)
+		if (VSTUDY_SKIP_PROVIDER_SETUP) {
+			if (!options?.disableChatViewReveal) {
+				this.widgetService.revealWidget();
+			}
+			this.context.update({ completed: true });
+			return { success: true, dialogSkipped };
 		}
 
 		let setupStrategy: ChatSetupStrategy;

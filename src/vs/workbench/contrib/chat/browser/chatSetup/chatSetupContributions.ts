@@ -88,12 +88,22 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		super();
 
 		const context = chatEntitlementService.context?.value;
-		const requests = chatEntitlementService.requests?.value;
+		const requests = chatEntitlementService.requests; // VStudy (T1.4): keep lazy — constructing it resolves GitHub entitlements
 		if (!context || !requests) {
 			return; // disabled
 		}
 
-		const controller = new Lazy(() => this._register(this.instantiationService.createInstance(ChatSetupController, context, requests)));
+		// VStudy (T1.4): BYOK-only build — neutralize GitHub/Copilot gating. Treat
+		// setup as completed and the entitlement as resolved so no sign-in UI ever
+		// renders and no GitHub/Copilot entitlement endpoint is contacted.
+		if (!context.state.completed) {
+			context.update({ completed: true });
+		}
+		if (context.state.entitlement === ChatEntitlement.Unknown) {
+			context.update({ entitlement: ChatEntitlement.Unresolved, organisations: undefined, sku: undefined, copilotTrackingId: undefined });
+		}
+
+		const controller = new Lazy(() => this._register(this.instantiationService.createInstance(ChatSetupController, context, requests.value)));
 
 		this.registerSetupAgents(context, controller);
 		this.registerGrowthSession(chatEntitlementService);
@@ -217,7 +227,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		updateGrowthSession();
 	}
 
-	private registerActions(context: ChatEntitlementContext, requests: ChatEntitlementRequests, controller: Lazy<ChatSetupController>): void {
+	private registerActions(context: ChatEntitlementContext, requests: Lazy<ChatEntitlementRequests>, controller: Lazy<ChatSetupController>): void {
 
 		//#region Global Chat Setup Actions
 
@@ -501,7 +511,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 				if (focus) {
 					windowFocusListener.clear();
 
-					const entitlements = await requests.forceResolveEntitlement();
+					const entitlements = await requests.value.forceResolveEntitlement();
 					if (entitlements?.entitlement && isProUser(entitlements?.entitlement)) {
 						refreshTokens(commandService);
 					}
