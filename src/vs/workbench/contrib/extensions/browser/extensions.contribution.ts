@@ -330,7 +330,10 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration)
 			[VerifyExtensionSignatureConfigKey]: {
 				type: 'boolean',
 				description: localize('extensions.verifySignature', "When enabled, extensions are verified to be signed before getting installed."),
-				default: true,
+				// VStudy: the OSS build does not bundle the proprietary `@vscode/vsce-sign` module, so
+				// verification can never succeed and would reject every Open VSX install in the packaged
+				// app (isBuilt=true). Off by default, like VSCodium; the user can re-enable it.
+				default: false,
 				scope: ConfigurationScope.APPLICATION,
 				included: isNative
 			},

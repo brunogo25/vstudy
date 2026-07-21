@@ -340,7 +340,10 @@ export class ExtensionManagementService extends AbstractExtensionManagementServi
 	private async downloadExtension(extension: IGalleryExtension, operation: InstallOperation, verifySignature: boolean, clientTargetPlatform?: TargetPlatform): Promise<{ readonly location: URI; readonly verificationStatus: ExtensionSignatureVerificationCode | undefined }> {
 		if (verifySignature) {
 			const value = this.configurationService.getValue(VerifyExtensionSignatureConfigKey);
-			verifySignature = isBoolean(value) ? value : true;
+			// VStudy: fallback to false when the config is not explicitly set. The OSS build does not
+			// bundle the proprietary `@vscode/vsce-sign` module, so verification can never succeed; in the
+			// CLI path the workbench contribution is not even registered, so the default must be off here.
+			verifySignature = isBoolean(value) ? value : false;
 		}
 		const { location, verificationStatus } = await this.extensionsDownloader.download(extension, operation, verifySignature, clientTargetPlatform);
 		const shouldRequireSignature = shouldRequireRepositorySignatureFor(extension.private, await this.extensionGalleryManifestService.getExtensionGalleryManifest());
