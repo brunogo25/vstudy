@@ -1,27 +1,34 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Something in VStudy isn't working right
 title: ''
-labels: ''
+labels: bug
 assignees: ''
-
 ---
 
-<!-- ⚠️⚠️ Do Not Delete This! bug_report_template ⚠️⚠️ -->
-<!-- Please read our Rules of Conduct: https://opensource.microsoft.com/codeofconduct/ -->
-<!-- 🕮 Read our guide about submitting issues: https://github.com/microsoft/vscode/wiki/Submitting-Bugs-and-Suggestions -->
-<!-- 🔎 Search existing issues to avoid creating duplicates. -->
-<!-- 🧪 Test using the latest Insiders build to see if your issue has already been fixed: https://code.visualstudio.com/insiders/ -->
-<!-- 💡 Instead of creating your report here, use 'Report Issue' from the 'Help' menu in VS Code to pre-fill useful information. -->
-<!-- 🔧 Launch with `code --disable-extensions` to check. -->
-Does this issue occur when all extensions are disabled?: Yes/No
+<!--
+Thanks for reporting! Don't worry about getting this perfect — a rough
+description is better than no report. Spanish is welcome (puedes escribir
+en español).
+-->
 
-<!-- 🪓 If you answered No above, use 'Help: Start Extension Bisect' from Command Palette to try to identify the cause. -->
-<!-- 📣 Issues caused by an extension need to be reported directly to the extension publisher. The 'Help > Report Issue' dialog can assist with this. -->
-- VS Code Version: 
-- OS Version: 
+**VStudy version:** <!-- Help menu → About VStudy, e.g. 0.1.0 -->
 
-Steps to Reproduce:
+**macOS version:** <!-- Apple menu → About This Mac, e.g. macOS 15.5 (Apple Silicon) -->
 
-1. 
+**What happened?**
+
+<!-- Describe what went wrong, in your own words. -->
+
+**What did you expect to happen?**
+
+**Steps to reproduce**
+
+1.
 2.
+3.
+
+**Anything else?**
+
+<!-- Screenshots, error messages, or which AI provider you were using
+(Anthropic / OpenAI / Ollama) if it's chat-related. Never paste your API key. -->

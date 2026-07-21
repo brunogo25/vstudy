@@ -1,0 +1,95 @@
+# =============================================================================
+# VStudy Release workflow — STUB.
+#
+# *** Implemented in Phase 4 (T4.6) — do not enable until G3 passes. ***
+#
+# Every step below is a placeholder `echo` so this file stays valid YAML and
+# lintable. Running it produces no artifacts, signs nothing, and publishes
+# nothing. The comments document the future pipeline (PLAN.md T4.2–T4.6) so the
+# build-engineer can fill it in without re-deriving the design.
+#
+# NOTE: this file is ADDITIVE to the upstream microsoft/vscode workflows in
+# this directory. It is prefixed `vstudy-` so it never name-collides with an
+# upstream workflow file during monthly merges.
+#
+# Constraints carried over from PLAN.md:
+#   - Node pinned by .nvmrc via fnm — never the runner's global Node.
+#   - No auto-update in v1: the release is a DMG on GitHub Releases + SHA256.
+#   - Fallback if the Apple Developer certificate is not available: ad-hoc
+#     signing + documented Gatekeeper instructions (PLAN.md T4.6, risk #11).
+#   - Zero telemetry, no backend: nothing here may call any VStudy server
+#     (there is none) or any Microsoft endpoint.
+# =============================================================================
+
+name: Release (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version to build and publish (e.g. 0.1.0)"
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Build, sign, notarize, publish (STUB)
+    runs-on: macos-latest
+    timeout-minutes: 120
+    steps:
+      - name: Stub notice
+        run: |
+          echo "STUB — Release pipeline is not implemented yet."
+          echo "Implemented in Phase 4 (T4.6) — do not enable until G3 passes."
+          echo "Requested version: ${{ inputs.version }}"
+
+      # -- T4.6 step 1: checkout + toolchain ----------------------------------
+      # Future: actions/checkout, brew install fnm, `fnm install` from .nvmrc,
+      # `fnm exec -- npm ci` (same toolchain rules as vstudy-ci.yml).
+      - name: "[stub] Checkout and toolchain (fnm + pinned Node)"
+        run: 'echo "STUB: checkout, install fnm, fnm install (.nvmrc), fnm exec -- npm ci"'
+
+      # -- T4.2: production build ---------------------------------------------
+      # Future: `fnm exec -- npm run gulp vscode-darwin-arm64-min-ci` producing
+      # the unsigned VStudy.app bundle.
+      - name: "[stub] Build vscode-darwin-arm64-min-ci"
+        run: 'echo "STUB: fnm exec -- npm run gulp vscode-darwin-arm64-min-ci"'
+
+      # -- T4.3: codesign -----------------------------------------------------
+      # Future: vstudy/build/release-macos.sh — sign nested binaries from the
+      # inside out with the Developer ID Application certificate, hardened
+      # runtime + entitlements (incl. allow-jit), VSCodium-style.
+      # Secrets needed: APPLE_CERT_P12, APPLE_CERT_PASSWORD.
+      # Fallback: `codesign --force --deep --sign -` (ad-hoc) + Gatekeeper docs.
+      - name: "[stub] Codesign (Developer ID, hardened runtime, entitlements)"
+        run: 'echo "STUB: vstudy/build/release-macos.sh — codesign inside-out with entitlements"'
+
+      # -- T4.4a: notarize ----------------------------------------------------
+      # Future: `xcrun notarytool submit --wait` on a zip of the signed app.
+      # Secrets needed: APPLE_ID, APPLE_TEAM_ID, APPLE_APP_SPECIFIC_PASSWORD.
+      # Gate G4 requires status "Accepted".
+      - name: "[stub] Notarize with xcrun notarytool"
+        run: 'echo "STUB: xcrun notarytool submit --wait"'
+
+      # -- T4.4b: staple ------------------------------------------------------
+      # Future: `xcrun stapler staple VStudy.app` so the app verifies offline.
+      - name: "[stub] Staple notarization ticket"
+        run: 'echo "STUB: xcrun stapler staple VStudy.app"'
+
+      # -- T4.5a: DMG ---------------------------------------------------------
+      # Future: `create-dmg` producing vstudy-<version>-darwin-arm64.dmg
+      # (then sign + notarize + staple the DMG itself).
+      - name: "[stub] Create DMG with create-dmg"
+        run: 'echo "STUB: create-dmg -> vstudy-${{ inputs.version }}-darwin-arm64.dmg"'
+
+      # -- T4.5b: checksum ----------------------------------------------------
+      # Future: `shasum -a 256` over the DMG, published alongside the asset.
+      - name: "[stub] Compute SHA256 checksum"
+        run: 'echo "STUB: shasum -a 256 vstudy-${{ inputs.version }}-darwin-arm64.dmg > SHA256SUMS"'
+
+      # -- T4.5c/T4.6: publish ------------------------------------------------
+      # Future: create GitHub Release `vstudy-v<version>` with release notes,
+      # upload DMG + SHA256SUMS (e.g. `gh release create`). No auto-update in
+      # v1 — users download the DMG themselves.
+      - name: "[stub] Create GitHub Release and upload assets"
+        run: 'echo "STUB: gh release create vstudy-v${{ inputs.version }} (DMG + SHA256SUMS + notes)"'

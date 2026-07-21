@@ -1,0 +1,87 @@
+# VStudy CI — compile check on every push/PR.
+#
+# NOTE: this file is ADDITIVE to the upstream microsoft/vscode workflows that
+# live in this same directory. It is prefixed `vstudy-` so it never
+# name-collides with an upstream workflow file during monthly merges.
+#
+# Build rules (PLAN.md §0, §4, §9):
+#   - Node is pinned by .nvmrc and MUST be installed/executed via fnm.
+#     Never use the runner's global Node — the wrong Node poisons native
+#     module builds (risk #3).
+#   - Packaged builds (vscode-darwin-arm64-min) run only at gates, not here.
+#     CI keeps the cheap signal: `npm run compile` must stay green.
+
+name: VStudy CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# One run per ref; a newer push cancels the in-progress run for that ref.
+concurrency:
+  group: vstudy-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: Compile (macOS arm64)
+    # macos-latest runners are Apple Silicon (arm64) — matches the MVP target.
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install fnm
+        run: brew install fnm
+
+      - name: Install pinned Node (from .nvmrc)
+        # `fnm install` with no argument resolves the version from .nvmrc in
+        # the working directory. The known-good Node is documented in
+        # vstudy/UPSTREAM.md.
+        run: fnm install
+
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-cache-${{ runner.os }}-arm64-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-cache-${{ runner.os }}-arm64-
+
+      - name: Install dependencies
+        # `fnm exec` resolves the pinned Node from .nvmrc — never the global one.
+        run: fnm exec -- npm ci
+        env:
+          # Some postinstall steps (e.g. @vscode/ripgrep) download release
+          # assets from the GitHub API; the token avoids anonymous rate limits.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile
+        run: fnm exec -- npm run compile
+
+  # ---------------------------------------------------------------------------
+  # TODO(qa-verifier / build-engineer): smoke-gates job.
+  #
+  # Automation for the gates lands later (PLAN.md §10):
+  #   - G1: brand checks (About = VStudy, data folder .vstudy, no MS telemetry
+  #     endpoints reachable) — grep/static checks are automatable here.
+  #   - G2: teaching-smoke suite (vstudy/qa/teaching-smoke.md) against a cheap
+  #     model or a deterministic mock.
+  #   - Bubbles storage unit tests (T3.1) once they exist.
+  #
+  # Keep this job commented out until at least one of those checks is real —
+  # a green check that verifies nothing is worse than no check.
+  #
+  # smoke-gates:
+  #   name: Smoke gates (G1/G2 subset)
+  #   runs-on: macos-latest
+  #   timeout-minutes: 30
+  #   needs: compile
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Run gate checks
+  #       run: echo "TODO: G1 brand/telemetry greps + G2 teaching-smoke (mock)"
